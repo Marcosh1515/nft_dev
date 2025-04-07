@@ -1,0 +1,64 @@
+# just the name of our action
+name: Deploy to GitHub Pages
+
+# on defines when the actions will run
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# permissions grant our image runner the ability to read-write files
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 2 commits made to main, this will cancel the first and only run the second
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+# jobs will define what actions will run
+jobs:
+  # build is hte name of the job (arbritrary name)
+  build: # this is the id of the job
+    # executed on an image, in this case ubuntu-22.04
+    runs-on: ubuntu-22.04
+    # each step has a name, and either a command (like run) or leverage an existing pre-made step
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        # with is arguments to pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'pnpm'
+      - name: Install Dependencies
+        uses: pnpm install
+      - name: Build Application
+        uses: pnpm build
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+          # an artifact (copy of files) prepares your static files and make them available for the next job
+  # deploy is the next job
+  deploy:
+    # create env variables for this job
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    # if build fails, deploy will not run, it needs build
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        # no additional config required, prebuilt deploy-pages action takes care of the rest, it automatically finds the artifact and runs the rest
