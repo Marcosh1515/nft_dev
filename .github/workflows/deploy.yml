@@ -13,7 +13,7 @@ permissions:
   pages: write
   id-token: write
 
-# 2 commits made to main, this will cancel the first and only run the second
+# 2 commits made to main, this will  cancel the first and only run the second
 concurrency:
   group: 'pages'
   cancel-in-progress: true
