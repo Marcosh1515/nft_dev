@@ -40,9 +40,9 @@ jobs:
           node-version: 18
           cache: 'pnpm'
       - name: Install Dependencies
-        uses: pnpm install
+        run: pnpm install
       - name: Build Application
-        uses: pnpm build
+        run: pnpm build
       - name: Upload Build Artifact
         uses: actions/upload-pages-artifact@v3
         with:
